@@ -1,0 +1,42 @@
+SD Card initialized
+SD Card loaded
+Wrote header to file
+SD Card initialized
+SD Card loaded
+Wrote header to file
+SD Card initialized
+SD Card loaded
+Wrote header to file
+SD Card initialized
+SD Card loaded
+Wrote header to file
+SD Card initialized
+SD Card loaded
+Wrote header to file
+SD Card initialized
+SD Card loaded
+Wrote header to file
+SD Card initialized
+SD Card loaded
+Wrote header to file
+SD Card initialized
+SD Card loaded
+Wrote header to file
+SD Card initialized
+SD Card loaded
+Wrote header to file
+SD Card initialized
+SD Card loaded
+Wrote header to file
+SD Card initialized
+SD Card loaded
+Wrote header to file
+SD Card initialized
+SD Card loaded
+Wrote header to file
+SD Card initialized
+SD Card loaded
+Wrote header to file
+SD Card initialized
+SD Card loaded
+Wrote header to file
