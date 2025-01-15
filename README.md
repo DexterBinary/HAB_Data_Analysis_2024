@@ -1,6 +1,6 @@
 # High Altitude Balloon Data Analysis
 
-This repository is dedicated to the analysis of data collected from a payload constructed by Parklands College and sent up on a NASA high altitude balloon ride. The payload was equipped with sensors to measure Total Volatile Organic Compounds (TVOC), CO2 levels, pressure, temperature, and three axes of acceleration.
+This repository is dedicated to the analysis of data collected from a payload constructed by Parklands College and sent up on a NASA high altitude balloon ride. The payload was equipped with sensors to measure Total Volatile Organic Compounds (TVOC), CO2 levels, pressure, temperature, and three axes of acceleration. Analysis aid provided by Trinity Preparatory School.
 
 
 ## Project Structure
