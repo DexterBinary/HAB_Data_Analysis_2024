@@ -1,0 +1,50 @@
+---
+title: "HAB Analysis"
+author: "Nikolas Polsinelli"
+date: "2025-01-09"
+output: html_document
+---
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library("tidyverse")
+library("tidymodels")
+library("ggforce")
+library("ggplot2")
+alldata<-read_csv("allData.csv")%>%
+  as_tibble()
+alldata
+```
+```{r}
+model<-lm(TVOC~CO2+Pressure+Temperature+Time,data=alldata)
+summary(model)
+```
+```{r}
+residerror<-sqrt(deviance(model)/df.residual(model))
+```
+```{r}
+ggplot(alldata)+
+  geom_point(aes(x=fitted.values(model),y=resid(model)))+
+  geom_hline(yintercept=2*residerror,color="blue")+
+  geom_hline(yintercept=-2*residerror,color="blue")+
+  geom_hline(yintercept=3*residerror,color="red")+
+  geom_hline(yintercept=-3*residerror,color="red")
+```
+This residual plot is exceedingly problematic. Clear patterns, lots of outliers. This indicates a need to adjust the model.
+```{r}
+round(sort(cooks.distance(model)),4)
+```
+```{r}
+Jackknife.Residual<-rstudent(model)
+plot(fitted.values(model),Jackknife.Residual)
+ggplot(alldata)+
+  geom_point(aes(x=fitted.values(model),y=Jackknife.Residual))+
+  geom_hline(yintercept=qt(df=95,.95),color="blue")+
+  geom_hline(yintercept=-qt(df=95,.95),color="blue")
+```
+```{r}
+plot(model)
+```
