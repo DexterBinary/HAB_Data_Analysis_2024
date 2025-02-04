@@ -1,0 +1,167 @@
+---
+title: "HAB Analysis"
+author: "Nikolas Polsinelli"
+date: "2025-01-09"
+output:
+  pdf_document: default
+  html_document: default
+---
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library("tidyverse")
+library("tidymodels")
+library("ggforce")
+library("ggplot2")
+alldata<-read_csv("allData.csv")%>%
+  as_tibble()
+alldata
+alldata2<-read_csv("allData2.csv")%>%
+  as_tibble()
+alldata2
+```
+```{r}
+model1<-lm(TVOC~CO2+Pressure+Temperature+Time,data=alldata2)
+summary(model1)
+```
+```{r}
+residerror<-sqrt(deviance(model1)/df.residual(model1))
+```
+#```{r}
+#ggplot(alldata2)+
+#  geom_point(aes(x=fitted.values(model),y=resid(model)))+
+#  geom_hline(yintercept=2*residerror,color="blue")+
+ # geom_hline(yintercept=-2*residerror,color="blue")+
+ # geom_hline(yintercept=3*residerror,color="red")+
+ # geom_hline(yintercept=-3*residerror,color="red")
+```
+This residual plot is exceedingly problematic. Clear patterns, lots of outliers. This indicates a need to adjust the model.
+#```{r}
+#round(sort(cooks.distance(model)),4)
+#```
+```{r}
+Jackknife.Residual<-rstudent(model1)
+plot(fitted.values(model1),Jackknife.Residual)
+#ggplot(alldata2)+
+#  geom_point(aes(x=fitted.values(model),y=Jackknife.Residual))+
+ # geom_hline(yintercept=qt(df=95,.95),color="blue")+
+ # geom_hline(yintercept=-qt(df=95,.95),color="blue")
+```
+```{r}
+plot(model1)
+```
+```{r}
+model2<-lm(TVOC~CO2+Pressure+Temperature,data=alldata2)
+summary(model2)
+```
+```{r}
+residerror2<-sqrt(deviance(model2)/df.residual(model2))
+```
+```{r}
+#ggplot(alldata2)+
+ # geom_point(aes(x=fitted.values(model2),y=resid(model2)))+
+ # geom_hline(yintercept=2*residerror,color="blue")+
+ # geom_hline(yintercept=-2*residerror,color="blue")+
+ # geom_hline(yintercept=3*residerror,color="red")+
+ # geom_hline(yintercept=-3*residerror,color="red")
+```
+```{r}
+plot(model2)
+```
+```{r}
+library("moments")
+skewness(Jackknife.Residual)
+kurtosis(Jackknife.Residual)
+```
+```{r}
+model3<-lm(TVOC~Pressure+Temperature+Time,data=alldata2)
+summary(model3)
+```
+```{r}
+residerror3<-sqrt(deviance(model3)/df.residual(model3))
+```
+```{r}
+#ggplot(alldata2)+
+#  geom_point(aes(x=fitted.values(model3),y=resid(model3)))+
+ # geom_hline(yintercept=2*residerror,color="blue")+
+ # geom_hline(yintercept=-2*residerror,color="blue")+
+ # geom_hline(yintercept=3*residerror,color="red")+
+ # geom_hline(yintercept=-3*residerror,color="red")
+```
+
+```{r}
+ggplot(alldata2, aes(x = Time, y = TVOC)) +
+  geom_line()
+ggplot(alldata2, aes(x=Time, y=Pressure))+geom_line()
+ggplot(alldata2, aes(x=Time, y=CO2))+geom_line()
+ggplot(alldata2, aes(x = Temperature, y = TVOC)) +
+  geom_point()
+ggplot(alldata2, aes(x=Temperature, y=Pressure))+geom_point()
+ggplot(alldata2, aes(x=Temperature, y=CO2))+geom_point()
+```
+```{r}
+hab_split<-initial_split(alldata,prop=.75)
+train<-training(hab_split)
+test<-testing(hab_split)
+train
+test
+get_upper_fence<-function(x){
+  quantile(x,.75)+(1.5*IQR(x))
+}
+
+get_lower_fence<-function(x){
+  quantile(x,.25)-(1.5*IQR(x))
+}
+train<-train%>%
+  filter_at(vars(CO2,TVOC,Pressure,Temperature),
+            all_vars(.>get_lower_fence(.)&
+                       .<get_upper_fence(.)))
+model<-fit(object=linear_reg(),formula=TVOC~CO2+Pressure+Temperature+Time,data=train)
+model
+summary(model)
+model<-fit(object=linear_reg(),formula=TVOC~CO2+Pressure+Temperature+Time,data=train)
+predict(model,new_data=test)
+model_results<-test%>%mutate(predict(model,new_data=test))
+model%>%tidy()
+coef(model)
+model_results
+```
+```{r}
+library ("maps")
+#get the SA map data
+sa_map<-map_data("world","South Africa")
+#plot the map
+ggplot(sa_map,
+       aes(x=long,y=lat,group=group))+geom_polygon(fill="white",color="black")+
+  coord_quickmap()
+```
+```{r}
+library("rpart.plot")
+library("caret")
+datarange<-read_csv("data_with_range.csv")%>%
+  as_tibble()
+datarange$Range <- as.factor(datarange$Range)
+
+datarange$Range %>% unique()
+rangesplit <-initial_split(datarange, prop = 0.75) 
+train <-training(rangesplit) 
+test <-testing(rangesplit)
+```
+
+```{r}
+#plot different graphs of the values
+ggplot(datarange, aes(x = .panel_x, y = .panel_y)) + geom_point(aes(color = Range)) + geom_autodensity(aes(fill = Range)) + geom_boxplot(aes(fill = Range)) + facet_matrix(vars(Temperature:CO2), layer.lower = 1, layer.diag = 2, layer.upper = 3)
+```
+```{r}
+#minn is nodes to split the tree, mode is classification or regression, depth is maximum depth of tree
+dtree_mod <-decision_tree(mode = "classification", min_n = 4, tree_depth = 3)
+dtree_mod_fit <-fit(object = dtree_mod, formula = Range ~ Temperature+CO2+Pressure+Time, data = train)
+dtree_mod_fit
+dtree_mod_fit %>% extract_fit_engine() %>% rpart.plot()
+predictions <-predict(dtree_mod_fit, new_data = test)
+confusionMatrix(data = predictions$.pred_class, reference = test$Range)
+```
+
